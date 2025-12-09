@@ -6,6 +6,8 @@ export default function Home() {
     const res = await fetch('/api/test');
     const data = await res.json();
     console.log(data);
+    //comment
+    //comment
   }
   getData();
   return (
