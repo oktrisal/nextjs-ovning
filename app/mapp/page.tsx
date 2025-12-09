@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from "react";
+
 type productprops = {
     id: number,
     name: string,
@@ -7,41 +8,103 @@ type productprops = {
     lng: number
 }
 
-export default function level1() {
-    const [products, setProducts] = useState<productprops[]>([]);
-    
+export default function MapPage() {
+    const [locations, setLocations] = useState<productprops[]>([]);
+    const [name, setName] = useState('');
+    const [lat, setLat] = useState('');
+    const [lng, setLng] = useState('');
+    const [message, setMessage] = useState('');
+
     useEffect(() => {
-
-        async function getData(){
-
+        async function fetchData() {
             const res = await fetch('/api/test');
             const data = await res.json();
-            setProducts(data);
+            setLocations(data);
         }
-
-        getData();
-
+        fetchData();
     }, []);
 
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setMessage('');
+        try {
+            const response = await fetch('/api/test', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ name,
+                     lat: parseFloat(lat),
+                      lng: parseFloat(lng)
+                     }),
+            });
+        if (!response.ok) {
+            throw new Error('Failed to add location');
+        }
+        const newLocation = await response.json();
+        setLocations([...locations, newLocation]);
+        setName('');
+        setLat('');
+        setLng('');
+        setMessage('Location added successfully!');
+    } catch (err: any) {
+        setMessage(err.message);
+    }
+    };
 
-return (
-  <div>
-    <h1 className="font-bold">Level 1 Page</h1>
+    return (
+        <div className = "text-center m-8 flex flex-col items-center text-slate-950 text-lg "> 
+            <div className="border bg-gray-500 mx-auto p-8 rounded-lg w-full max-w-md">
+            <h1 className="text-2xl font-bold mb-4">Locations</h1>
+            <form onSubmit= {handleSubmit} className ="">
+                <label>
+                    Name:
+                    <input 
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="mt-1 p-2 border rounded" />
+                </label>
+                <br />
+                <label>
+                    Latitude:
+                    <input 
+                    type="number"
+                    step="0.0001"
+                    value={lat}
+                    onChange={(e) => setLat(e.target.value)}
+                    required
+                    className="mt-1 p-2 border rounded" />
+                </label>
+                <br />
+                <label>
+                    Longitude:
+                    <input
+                    type="number"
+                    step="0.0001"
+                    value={lng}
+                    onChange={(e) => setLng(e.target.value)}
+                    required
+                    className="mt-1 p-2 border rounded" />
+                </label>
+                <br />
+                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded m-4 border border-green-900 rounded-2xl">
+                    Add Location
+                </button>
+                </form>
 
-    <div>
-      {products.length === 0 ? (
-        <p>loading!!!!</p>
-      ) : (
-        products.map(product => (
-          <div key={product.id} className="border p-4 m-4 bg-gray-600">
-            <h2>{product.name}</h2>
-            <p>Latitude: {product.lat}, Longitude: {product.lng}</p>
-          </div>
-        ))
-      )}
-    </div>
-  </div>
-);
+                {message && <p>{message}</p>}
+
+                <h2 className="font-bold">Locations List</h2>
+                <ul>
+                    {locations.map((loc) => (
+                        <li key={loc.id} className="m-2">
+                            {loc.name} - Lat: {loc.lat}, Lng: {loc.lng}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    )
 }
 
 
