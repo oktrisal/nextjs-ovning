@@ -23,3 +23,19 @@ export async function POST(request: Request){
     return Response.json({message: 'Error adding location'}, {status: 400});
 }
 }
+
+export async function DELETE(request: Request){
+const { searchParams } = new URL(request.url);
+const id = Number(searchParams.get('id'));
+
+if (!id) {
+    return Response.json({message: 'ID is required'}, {status: 400});
+}
+
+const index = locations.findIndex(loc => loc.id === id);
+if (index === -1) {
+    return Response.json({message: 'Location not found'}, {status: 404});
+}
+locations.splice(index, 1);
+return Response.json({message: 'Location deleted'}, {status: 200});
+}

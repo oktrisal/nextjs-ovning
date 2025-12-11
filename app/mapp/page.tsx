@@ -24,6 +24,20 @@ export default function MapPage() {
         fetchData();
     }, []);
 
+    const handleDelete = async (id: number) => {
+        try {
+            const response = await fetch(`/api/test?id=${id}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete location');
+            }
+            setLocations(locations.filter(loc => loc.id !== id));
+        } catch (err: any) {
+            setMessage(err.message);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setMessage('');
@@ -52,7 +66,7 @@ export default function MapPage() {
 
     return (
         <div className = "text-center m-8 flex flex-col items-center text-slate-950 text-lg "> 
-            <div className="border bg-gray-500 mx-auto p-8 rounded-lg w-full max-w-md">
+            <div className="border bg-gray-500 mx-auto p-8 rounded-lg w-full max-w-xl">
             <h1 className="text-2xl font-bold mb-4">Locations</h1>
             <form onSubmit= {handleSubmit} className ="">
                 <label>
@@ -87,7 +101,7 @@ export default function MapPage() {
                     className="mt-1 p-2 border rounded" />
                 </label>
                 <br />
-                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded m-4 border border-green-900 rounded-2xl">
+                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded m-4 border border-green-900 ">
                     Add Location
                 </button>
                 </form>
@@ -97,8 +111,12 @@ export default function MapPage() {
                 <h2 className="font-bold">Locations List</h2>
                 <ul>
                     {locations.map((loc) => (
-                        <li key={loc.id} className="m-2">
-                            {loc.name} - Lat: {loc.lat}, Lng: {loc.lng}
+                        <li key={loc.id} className="m-2 text-left flex items-center">
+                          ID: {loc.id}  {loc.name} - Lat: {loc.lat}, Lng: {loc.lng}
+                          <button className="ml-auto bg-red-500 text-white px-2 py-1 rounded border border-black"
+                            onClick={() => handleDelete(loc.id)}
+                            >Delete
+                            </button>
                         </li>
                     ))}
                 </ul>
