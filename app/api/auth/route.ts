@@ -1,16 +1,9 @@
  import { cookies } from 'next/headers';
- import { NextResponse } from 'next/server';
-
+import { NextResponse } from 'next/server';
 const USERS = [
 { username: 'user', password: 'user123', role: 'user' },
 { username: 'admin', password: 'admin123', role: 'admin' },
 ];
-
-let locations = [         
-        {"id": 1, "name": "Skolan", "lat": 59.3, "lng": 18.1 },
-        { "id": 2, "name": "Biblioteket", "lat": 59.4, "lng": 18.05 } 
-];
-
 export async function POST(req: Request) {
 const cookieStore = await cookies()
 const { username, password } = await req.json();
@@ -25,9 +18,3 @@ const cookieStore = await cookies()
 cookieStore.set('role', '', { httpOnly: true, path: '/', sameSite: 'lax', maxAge: 0 });
 return Response.json({ success: true });
 }
-
-export async function GET(){
-
-    return Response.json(locations);
-}
-
