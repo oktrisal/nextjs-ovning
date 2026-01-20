@@ -23,7 +23,9 @@ export default function MapPage() {
         const data = await res.json();
         setLocations(data);
 
-        const roleRes = await fetch('/api/auth/check'); 
+        const roleRes = await fetch('/api/auth/check', { 
+          credentials: 'include' 
+        }); 
         if (roleRes.ok) {
           const roleData = await roleRes.json();
           console.log('role:', roleData.role);
@@ -47,19 +49,24 @@ export default function MapPage() {
     }
 
     try {
-      const response = await fetch('/api/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, lat: parseFloat(lat), lng: parseFloat(lng) }),
-      });
+    const response = await fetch('/api/test', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({
+    name,
+    lat: parseFloat(lat),
+    lng: parseFloat(lng),
+  }),
+});
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || 'Failed to add location');
-      }
+if (!response.ok) {
+  const text = await response.text();
+  throw new Error(text || 'Failed to add location');
+}
 
-      const newLocation = await response.json();
-      setLocations([...locations, newLocation]);
+const newLocation = await response.json();
+setLocations([...locations, newLocation]);
       setName('');
       setLat('');
       setLng('');
@@ -77,7 +84,9 @@ export default function MapPage() {
     }
 
     try {
-      const response = await fetch(`/api/test?id=${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/test?id=${id}`, 
+    { method: 'DELETE',
+      credentials: 'include' });
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.message || 'Failed to delete location');
