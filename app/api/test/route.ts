@@ -1,33 +1,85 @@
- import { cookies } from 'next/headers';
- import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 
-const USERS = [
-{ username: 'user', password: 'user123', role: 'user' },
-{ username: 'admin', password: 'admin123', role: 'admin' },
+
+let locations = [
+  { id: 1, name: "Skolan", lat: 59.3, lng: 18.1 },
+  { id: 2, name: "Biblioteket", lat: 59.4, lng: 18.05 }
 ];
 
-let locations = [         
-        {"id": 1, "name": "Skolan", "lat": 59.3, "lng": 18.1 },
-        { "id": 2, "name": "Biblioteket", "lat": 59.4, "lng": 18.05 } 
-];
 
+function getRole(): string | undefined {
+  const roleCookie = cookies().get('role'); 
+  return roleCookie?.value;
+}
+
+// open for all
+export async function GET() {
+  return NextResponse.json(locations);
+}
+
+// user + admin
 export async function POST(req: Request) {
-const cookieStore = await cookies()
-const { username, password } = await req.json();
-const match = USERS.find(u => u.username === username && u.password === password);
-if (!match) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-cookieStore.set('role', match.role, { httpOnly: true, path: '/', sameSite: 'lax' });
-return Response.json({ success: true, role: match.role });
+    console.log("POST body:", await req.clone().json());
+  const role = getRole();
+
+  if (!role || (role !== 'user' && role !== 'admin')) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
+
+    try {
+    const data = await req.json();
+    const newLocation = {
+        id: locations.length + 1,
+        name: data.name,
+        lat: data.lat,
+        lng: data.lng
+    };
+    locations.push(newLocation);
+    return NextResponse.json(newLocation, {status: 201});
+} catch (err) {
+    return NextResponse.json({message: 'Error adding location'}, {status: 400});
 }
-//Tar bort cookies, när man logggar ut
-export async function DELETE() {
-const cookieStore = await cookies()
-cookieStore.set('role', '', { httpOnly: true, path: '/', sameSite: 'lax', maxAge: 0 });
-return Response.json({ success: true });
 }
 
-export async function GET(){
+// admin only
+export async function PUT(req: Request) {
+  const role = getRole();
 
-    return Response.json(locations);
+  if (role !== 'admin') {
+    return NextResponse.json({ message: "Admin only" }, { status: 403 });
+  }
+
+  const data = await req.json();
+  locations = locations.map(loc =>
+    loc.id === data.id ? { ...loc, ...data } : loc
+  );
+
+  return NextResponse.json({ success: true });
+}
+
+// admin only
+export async function DELETE(req: Request) {
+  const role = getRole();
+
+  
+
+  if (role !== 'admin') {
+    return NextResponse.json({ message: "Admin only" }, { status: 403 });
+}
+
+ const { searchParams } = new URL(req.url);
+ const id = Number(searchParams.get('id'));
+
+ if (!id) {
+    return NextResponse.json({message: 'ID is required'}, {status: 400});
+}
+
+ const index = locations.findIndex(loc => loc.id === id);
+ if (index === -1) {
+    return NextResponse.json({message: 'Location not found'}, {status: 404});
+}
+ locations.splice(index, 1);
+ return NextResponse.json({message: 'Location deleted'}, {status: 200});
 }
 
